@@ -22,16 +22,19 @@ _start:
     mov edx, 10
     int 0x80
     
-    mov edx, [x]
+    lea edx, [x] ; convert input string to number
     call atoi
-    add eax, 10
-    mov [y], eax
+    mov [x], eax
 
     mov eax, 12
     mov ebx, 2
     mul ebx
-    add eax, '0'
-    ; mov [y], eax
+    add eax, [x]
+    mov [y], eax
+
+    mov eax, [y] ; convert number to output string
+    lea esi, [y]
+    call int_to_string
 
     mov eax, SYS_WRITE ; write
     mov ebx, STDOUT
@@ -62,4 +65,20 @@ atoi:
     add eax, ecx ; add in current digit
     jmp .top ; until done
 .done:
+    ret
+
+int_to_string:
+    add esi, 9
+    mov byte [esi], 0
+
+    mov ebx,10         
+.next_digit:
+    xor edx, edx         ; Clear edx prior to dividing edx:eax by ebx
+    div ebx             ; eax /= 10
+    add dl, '0'          ; Convert the remainder to ASCII 
+    dec esi             ; store characters in reverse order
+    mov [esi], dl
+    test eax, eax            
+    jnz .next_digit     ; Repeat until eax==0
+    mov eax, esi
     ret
