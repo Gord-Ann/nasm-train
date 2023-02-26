@@ -33,6 +33,7 @@ _start:
     mov [y], eax
 
     mov eax, [y] ; convert number to output string
+    mov [y], byte 0 ; zero the answer
     lea esi, [y]
     call int_to_string
 
