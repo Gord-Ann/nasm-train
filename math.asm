@@ -9,7 +9,6 @@ SECTION .data
     newLineLen:  EQU $-newLine
 SECTION .bss
     x resb 1
-    converted resb 1
     y resb 1
 
 SECTION .text
@@ -26,13 +25,34 @@ _start:
     call atoi
     mov [x], eax
 
-    mov eax, 12
+    mov eax, 12 ; 12*2 + x
     mov ebx, 2
     mul ebx
     add eax, [x]
-    mov [y], eax
 
-    mov eax, [y] ; convert number to output string
+    mov ebx, 2 ; eax/(2 + 3)
+    add ebx, 3
+    div ebx
+    push rax
+
+    mov eax, 12 ; 12/6
+    mov ebx, 6
+    xor edx, edx ; zero the edx register so the remainder from prevoius division won't trash arithmetic operation
+    div ebx
+    pop rbx ; ebx - 12/6
+    sub ebx, eax
+    push rbx
+
+    mov eax, 13 ; 13*x
+    mov ebx, [x]
+    mul ebx
+    pop rbx ; ebx + 13*x
+    add eax, ebx
+
+    mov [y], eax ; mov final answer to y
+    
+    ; convert number to output string
+    mov eax, [y]
     mov [y], byte 0 ; zero the answer
     lea esi, [y]
     call int_to_string
