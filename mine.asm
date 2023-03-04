@@ -39,7 +39,8 @@ section .data
  	mul ebx
  	mov ebx, 2
  	add ebx, [x]
- 	;обнуляем чтобы избежать ошибки деления на 0
+	
+ 	;ксорим, деление на 0
  	xor edx, edx
  	div ebx
  	mov ecx, eax
@@ -51,8 +52,11 @@ section .data
  	mov ebx, 3
  	sub ebx, 1
  	
+	;ксорим, деление на 0
  	xor edx, edx
  	div ebx
+	
+	;складываем дроби
  	add ecx, eax
  
  	;третья дробь
@@ -60,10 +64,15 @@ section .data
  	mov ebx, [x]
  	mul ebx
  	mov ebx, 4
+	
+	;ксорим, деление на 0
  	xor edx, edx
  	div ebx
+	
+	;складываем дроби
  	add ecx, eax
- 
+	
+	;значение переменной у
  	mov [y], ecx
 
  	; Выводим на экран сообщение "y = " и значение y
