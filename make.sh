@@ -1,5 +1,5 @@
 #!/bin/bash
 
-nasm -f elf64 lab2.asm 
-ld -o lab2 lab2.o
-./lab2
+nasm -f elf64 lab3.asm 
+ld -o lab3 lab3.o
+./lab3
