@@ -341,6 +341,7 @@ main:
 			INT 0x80
 ; Listening for the esc key 
 			CALL canonical_off
+			CALL echo_off
 .esc:
 			MOV eax, SYS_READ
 			MOV ebx, STDIN
@@ -352,6 +353,7 @@ main:
 			JNE .esc
 exit:    
 			CALL canonical_on
+			CALL echo_on
 ; printing the endline symbols
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
