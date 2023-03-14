@@ -63,7 +63,7 @@ main:
 			MOV ecx, name
 			MOV edx, 40
 			INT 0x80
-			CALL delSpace
+			CALL delENDL
 ; printing: "Пользователю "
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
@@ -110,7 +110,12 @@ main:
 			MOV ebx, 24
 			XOR edx, edx     ;cleaning reg EDX
 			DIV ebx
-			ADD edx, 3       ;UTC+3 - Moscow time
+			ADD edx, 3       ;UTC+3 - Moscow time		
+			CMP edx, 24
+			JL .utcFix
+			ADD eax, 1
+			SUB edx, 24
+.utcFix:
 			MOV [hour], edx
 			MOV ebx, 365
 			XOR edx, edx     ;cleaning reg EDX
@@ -368,8 +373,11 @@ int_to_string:
 			MOV eax,[esi]
 			MOV byte [esi], 0
 			ADD esi, ebx
-			MOV ebx,10
+			MOV ecx, ebx
+			;DEC ecx
+			MOV ebx, 10
 .next_digit:
+			DEC ecx
 			XOR edx, edx
 			DIV ebx
 			ADD dl,'0'
@@ -377,8 +385,16 @@ int_to_string:
 			MOV [esi], dl
 			TEST eax, eax
 			JNZ .next_digit
-			MOV eax, esi
+.test:
+			CMP ecx, 0
+			JNE .addZero
 			RET
+.addZero:
+			DEC ecx
+			DEC esi
+			MOV byte [esi], '0'
+			JMP .test
+
 is_Leap:
 			MOV ebx,4
 			XOR edx, edx
@@ -418,7 +434,7 @@ is_Leap:
 			SUB ecx, 478
 			MOV eax, 1
 			RET
-delSpace:		
+delENDL:		
 			XOR eax, eax
 			MOV ebx, name
 .top:
@@ -434,63 +450,63 @@ delSpace:
     		RET
     
 canonical_off:
-        call read_stdin_termios
+			call read_stdin_termios
 
-        ; clear canonical bit in local mode flags
-        and dword [termios+12], ~ICANON
+			; clear canonical bit in local mode flags
+			and dword [termios+12], ~ICANON
 
-        call write_stdin_termios
-        ret
+			call write_stdin_termios
+			ret
 
 echo_off:
-        call read_stdin_termios
+			call read_stdin_termios
 
-        ; clear echo bit in local mode flags
-        and dword [termios+12], ~ECHO
+			; clear echo bit in local mode flags
+			and dword [termios+12], ~ECHO
 
-        call write_stdin_termios
-        ret
+			call write_stdin_termios
+			ret
 
 canonical_on:
-        call read_stdin_termios
+			call read_stdin_termios
 
-        ; set canonical bit in local mode flags
-        or dword [termios+12], ICANON
+			; set canonical bit in local mode flags
+			or dword [termios+12], ICANON
 
-        call write_stdin_termios
-        ret
+			call write_stdin_termios
+			ret
 
 echo_on:
-        call read_stdin_termios
+			call read_stdin_termios
 
-        ; set echo bit in local mode flags
-        or dword [termios+12], ECHO
+			; set echo bit in local mode flags
+			or dword [termios+12], ECHO
 
-        call write_stdin_termios
-        ret
+			call write_stdin_termios
+			ret
 
 ; clobbers RAX, RCX, RDX, R8..11 (by int 0x80 in 64-bit mode)
 ; allowed by x86-64 System V calling convention    
 read_stdin_termios:
-        push rbx
+			push rbx
 
-        mov eax, 36h
-        mov ebx, stdin_fd
-        mov ecx, 5401h
-        mov edx, termios
-        int 80h            ; ioctl(0, 0x5401, termios)
+			mov eax, 36h
+			mov ebx, stdin_fd
+			mov ecx, 5401h
+			mov edx, termios
+			int 80h            ; ioctl(0, 0x5401, termios)
 
-        pop rbx
-        ret
+			pop rbx
+			ret
 
 write_stdin_termios:
-        push rbx
+			push rbx
 
-        mov eax, 36h
-        mov ebx, stdin_fd
-        mov ecx, 5402h
-        mov edx, termios
-        int 80h            ; ioctl(0, 0x5402, termios)
+			mov eax, 36h
+			mov ebx, stdin_fd
+			mov ecx, 5402h
+			mov edx, termios
+			int 80h            ; ioctl(0, 0x5402, termios)
 
-        pop rbx
-        ret
+			pop rbx
+			ret
