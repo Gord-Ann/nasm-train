@@ -40,7 +40,6 @@ year		RESB 4
 
 termios        resb 36
 
-stdin_fd       equ 0           ; STDIN_FILENO
 ICANON         equ 1<<1
 ECHO           equ 1<<3
 
@@ -490,11 +489,11 @@ echo_on:
 read_stdin_termios:
 			push rbx
 
-			mov eax, 36h
-			mov ebx, stdin_fd
-			mov ecx, 5401h
+			mov eax, 0x36
+			mov ebx, STDIN
+			mov ecx, 0x5401
 			mov edx, termios
-			int 80h            ; ioctl(0, 0x5401, termios)
+			int 0x80            ; ioctl(0, 0x5401, termios)
 
 			pop rbx
 			ret
@@ -502,11 +501,11 @@ read_stdin_termios:
 write_stdin_termios:
 			push rbx
 
-			mov eax, 36h
-			mov ebx, stdin_fd
-			mov ecx, 5402h
+			mov eax, 0x36
+			mov ebx, STDIN
+			mov ecx, 0x5402
 			mov edx, termios
-			int 80h            ; ioctl(0, 0x5402, termios)
+			int 0x80            ; ioctl(0, 0x5402, termios)
 
 			pop rbx
 			ret
