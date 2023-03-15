@@ -5,6 +5,7 @@ STDIN		EQU 0
 STDOUT		EQU 1
 SYS_CREATE	EQU 8
 SYS_OPEN	EQU 5
+SYS_CLOSE	EQU 6
 
 SECTION .data
 
@@ -90,10 +91,11 @@ main:
 ; creating file.txt
 			MOV eax, SYS_CREATE
 			MOV ebx, file
-			MOV ecx, 0777       ;read-write-ex
+			MOV ecx, 0666o       ;read-write
 			INT 0x80
-			MOV [desc], edx
+			MOV [desc], eax
 ; getting time
+			XOR ebx, ebx     ;cleaning reg EBX
 			MOV eax, 13
 			INT 0x80
 			MOV [time], eax
@@ -131,20 +133,6 @@ main:
 			JNZ .notLeap
 			MOV ebx, 1
 .notLeap:
-			;IMUL ecx, 24
-			;MOV eax, [time]
-			;SUB eax, ecx
-			;MOV ebx, 86400
-			;XOR edx, edx
-			;DIV ebx
-
-
-			;ADD edx, ecx
-			;MOV [hour], edx
-			;MOV ebx, 365
-			;XOR edx, edx     ;cleaning reg EDX
-			;DIV ebx
-			;SUB edx, ecx
 			SUB eax, 31
 			JC .JAN
 			SUB eax, 28
@@ -324,14 +312,14 @@ main:
 			INT 0x80
 
 ; closing the file.txt
-			MOV eax, 6
+			MOV eax, SYS_CLOSE
 			MOV ebx, [desc]
 			INT 0x80
-;open the file for reading
-			MOV eax, 5
+; open the file for reading
+			MOV eax, SYS_OPEN
 			MOV ebx, file
-			MOV ecx, 0             ;for read only access
-			MOV edx, 0777          ;read, write and execute by all
+			MOV ecx, 2
+			MOV edx, 0666o       ;read, write and execute by all
 			INT  0x80
 ; reading from file.txt		
 			MOV eax, SYS_READ
@@ -339,11 +327,18 @@ main:
 			MOV ecx, name
 			MOV edx, 40
 			INT 0x80
+; writing to the screen		
+			MOV eax, SYS_WRITE
+			MOV ebx, STDOUT
+			MOV ecx, name
+			MOV edx, 20
+			INT 0x80
+
 ; closing the file.txt
 			MOV eax, 6
 			MOV ebx, [desc]
 			INT 0x80
-; Listening for the esc key 
+; listening for the esc key 
 			CALL canonical_off
 			CALL echo_off
 .esc:
@@ -484,8 +479,6 @@ echo_on:
 			call write_stdin_termios
 			ret
 
-; clobbers RAX, RCX, RDX, R8..11 (by int 0x80 in 64-bit mode)
-; allowed by x86-64 System V calling convention    
 read_stdin_termios:
 			push rbx
 
