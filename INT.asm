@@ -1,11 +1,12 @@
 SYS_EXIT	EQU 1
 SYS_READ	EQU 3
 SYS_WRITE	EQU 4
-STDIN		EQU 0
-STDOUT		EQU 1
-SYS_CREATE	EQU 8
 SYS_OPEN	EQU 5
 SYS_CLOSE	EQU 6
+SYS_CREATE	EQU 8
+
+STDIN		EQU 0
+STDOUT		EQU 1
 
 SECTION .data
 
@@ -22,10 +23,10 @@ space 		DB " "
 msg3		DB " разрешены действия в системе"
 len3		EQU $- msg3
 
-file		DB "/home/nikita/Рабочий стол/Лабы по NASM/4/file.txt", 0
+file		DB "file.txt", 0
 
-next_line	DB 0xA,0xD
-lenNL		EQU $- next_line
+NL	DB 0xA,0xD
+lenNL		EQU $- NL
 
 SECTION .bss
 
@@ -39,6 +40,8 @@ day			RESB 4
 mon			RESB 4
 year		RESB 4
 
+date		RESB 21
+
 termios        resb 36
 
 ICANON         equ 1<<1
@@ -51,53 +54,53 @@ main:
     		MOV rbp, rsp; for correct debugging
     		MOV ebp, esp; for correct debugging
 			XOR eax, eax
-; printing: "Enter a x for 13 var"
+; printing: "Please, enter your name:"
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
 			MOV ecx, msg1
 			MOV edx, len1
-			INT 0x80
+			INT 80h
 ; reading a name into the name variable
 			MOV eax, SYS_READ
 			MOV ebx, STDIN
 			MOV ecx, name
 			MOV edx, 40
-			INT 0x80
+			INT 80h
 			CALL delENDL
 ; printing: "Пользователю "
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
 			MOV ecx, msg2
 			MOV edx, len2
-			INT 0x80
+			INT 80h
 ; printing the name
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
 			MOV ecx, name
 			MOV edx, 20
-			INT 0x80
+			INT 80h
 ; printing: " разрешены действия в системе"
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
 			MOV ecx, msg3
 			MOV edx, len3
-			INT 0x80
+			INT 80h
 ; printing the endline symbols
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
-			MOV ecx, next_line
+			MOV ecx, NL
 			MOV edx, lenNL
-			INT 0x80
+			INT 80h
 ; creating file.txt
 			MOV eax, SYS_CREATE
 			MOV ebx, file
 			MOV ecx, 0666o       ;read-write
-			INT 0x80
+			INT 80h
 			MOV [desc], eax
 ; getting time
 			XOR ebx, ebx     ;cleaning reg EBX
-			MOV eax, 13
-			INT 0x80
+			MOV eax, 13		
+			INT 80h
 			MOV [time], eax
 			XOR ebx, ebx     ;cleaning reg EBX
 			MOV ebx, 60
@@ -107,7 +110,6 @@ main:
 			XOR edx, edx     ;cleaning reg EDX
 			DIV ebx
 			MOV [min], edx
-
 			MOV ebx, 24
 			XOR edx, edx     ;cleaning reg EDX
 			DIV ebx
@@ -244,100 +246,105 @@ main:
 			CALL int_to_string
 
 
+			;MOV eax, date
+			;LEA ecx, [year]
+			;MOV [eax], [ecx]
+			
+
 ; writing in file.txt
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			LEA ecx, [day+2]
 			MOV edx, 2
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, dot
 			MOV edx, 1
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, mon
 			MOV edx, 2
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, dot
 			MOV edx, 1
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, year
 			MOV edx, 4
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, space
 			MOV edx, 1
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			LEA ecx, [hour+2]
 			MOV edx, 2
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, doubleDot
 			MOV edx, 1
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			LEA ecx, [min+2]
 			MOV edx, 2
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			MOV ecx, doubleDot
 			MOV edx, 1
-			INT 0x80
+			INT 80h
 
 			MOV eax, SYS_WRITE
 			MOV ebx, [desc]
 			LEA ecx, [sec+2]
 			MOV edx, 2
-			INT 0x80
+			INT 80h
 
 ; closing the file.txt
 			MOV eax, SYS_CLOSE
 			MOV ebx, [desc]
-			INT 0x80
+			INT 80h
 ; open the file for reading
 			MOV eax, SYS_OPEN
 			MOV ebx, file
 			MOV ecx, 2
-			MOV edx, 0666o       ;read, write and execute by all
-			INT  0x80
+			MOV edx, 0666o       ;read, write AND execute by all
+			INT  80h
 ; reading from file.txt		
 			MOV eax, SYS_READ
 			MOV ebx, [desc]
 			MOV ecx, name
 			MOV edx, 40
-			INT 0x80
+			INT 80h
 ; writing to the screen		
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
 			MOV ecx, name
 			MOV edx, 20
-			INT 0x80
+			INT 80h
 
 ; closing the file.txt
 			MOV eax, 6
 			MOV ebx, [desc]
-			INT 0x80
+			INT 80h
 ; listening for the esc key 
 			CALL canonical_off
 			CALL echo_off
@@ -346,7 +353,7 @@ main:
 			MOV ebx, STDIN
 			MOV ecx, name
 			MOV edx, 1
-			INT 0x80
+			INT 80h
 			MOVZX eax, byte [name]
 			CMP eax, 0x1B
 			JNE .esc
@@ -356,19 +363,18 @@ exit:
 ; printing the endline symbols
 			MOV eax, SYS_WRITE
 			MOV ebx, STDOUT
-			MOV ecx, next_line
+			MOV ecx, NL
 			MOV edx, lenNL
-			INT 0x80
+			INT 80h
 			MOV eax, SYS_EXIT
 			XOR ebx, ebx
-			INT 0x80
+			INT 80h
 
 int_to_string:
 			MOV eax,[esi]
 			MOV byte [esi], 0
 			ADD esi, ebx
 			MOV ecx, ebx
-			;DEC ecx
 			MOV ebx, 10
 .next_digit:
 			DEC ecx
@@ -444,61 +450,61 @@ delENDL:
     		RET
     
 canonical_off:
-			call read_stdin_termios
+			CALL read_STDIN_termios
 
 			; clear canonical bit in local mode flags
-			and dword [termios+12], ~ICANON
+			AND dword [termios+12], ~ICANON
 
-			call write_stdin_termios
-			ret
+			CALL write_STDIN_termios
+			RET
 
 echo_off:
-			call read_stdin_termios
+			CALL read_STDIN_termios
 
 			; clear echo bit in local mode flags
-			and dword [termios+12], ~ECHO
+			AND dword [termios+12], ~ECHO
 
-			call write_stdin_termios
-			ret
+			CALL write_STDIN_termios
+			RET
 
 canonical_on:
-			call read_stdin_termios
+			CALL read_STDIN_termios
 
 			; set canonical bit in local mode flags
-			or dword [termios+12], ICANON
+			OR dword [termios+12], ICANON
 
-			call write_stdin_termios
-			ret
+			CALL write_STDIN_termios
+			RET
 
 echo_on:
-			call read_stdin_termios
+			CALL read_STDIN_termios
 
 			; set echo bit in local mode flags
-			or dword [termios+12], ECHO
+			OR dword [termios+12], ECHO
 
-			call write_stdin_termios
-			ret
+			CALL write_STDIN_termios
+			RET
 
-read_stdin_termios:
-			push rbx
+read_STDIN_termios:
+			PUSH rbx
 
-			mov eax, 0x36
-			mov ebx, STDIN
-			mov ecx, 0x5401
-			mov edx, termios
-			int 0x80            ; ioctl(0, 0x5401, termios)
+			MOV eax, 36h
+			MOV ebx, STDIN
+			MOV ecx, 5401h
+			MOV edx, termios
+			INT 80h            ; ioctl(0, 5401h, termios)
 
-			pop rbx
-			ret
+			POP rbx
+			RET
 
-write_stdin_termios:
-			push rbx
+write_STDIN_termios:
+			PUSH rbx
 
-			mov eax, 0x36
-			mov ebx, STDIN
-			mov ecx, 0x5402
-			mov edx, termios
-			int 0x80            ; ioctl(0, 0x5402, termios)
+			MOV eax, 36h
+			MOV ebx, STDIN
+			MOV ecx, 5402h
+			MOV edx, termios
+			INT 80h            ; ioctl(0, 5402h, termios)
 
-			pop rbx
-			ret
+			POP rbx
+			RET
