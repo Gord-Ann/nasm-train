@@ -29,8 +29,8 @@ _start:
   lea rsi, [buf]        ;adress for buffer
   mov rdx, 64           ;length (size of buffer)
   syscall               ;execute
-  mov r8, rax           ;r8 = number of bytes read 
-  dec r8                ;remove last character 
+  mov r8, rax           ;r8 = number of bytes read
+  dec r8                ;remove last character
 
   ; Print msg
   mov rax, 1            ;writing
@@ -49,7 +49,7 @@ _start:
   ; Print allowed
   mov rax, 1            ;writing
   mov rdi, 1            ;stdout
-  lea rsi, [allowed]    ;adress for line 
+  lea rsi, [allowed]    ;adress for line
   mov rdx, 45           ;length of line to print
   syscall               ;execute
 
@@ -66,11 +66,11 @@ _start:
   mov rax, 2                ; Open file
   lea rdi, [filename]       ; file name i want to open
   mov rsi, 0102             ; O_RDWR | O_CREAT
-  mov rdx, 0666o            ; file permission mode, -rw-rw-rw-  
+  mov rdx, 0666o            ; file permission mode, -rw-rw-rw-
   syscall
   pop r11                   ; Restore r11
 
-  mov rsi, rax              ; id of opened file
+  mov rsi, rax              ; save id of opened file
   mov rdi, r12              ; day
   call print_number         ; print day
   mov rdi, '.'
@@ -97,9 +97,38 @@ _start:
   call print_number         ; print second
 
   ; Close file
+  push r11                  ; Save r11
   mov rax, 3                ;sys close
   mov rdi, rsi              ;id of opened file
   syscall
+  pop r11                   ; Restore r11
+
+  ; print on stdout
+  mov rax, 1
+  mov rdi, r12              ; day
+  call print_number         ; print day
+  mov rdi, '.'
+  call putchar
+  mov rdi, r11
+  call print_number         ; print month
+  mov rdi, '.'
+  call putchar
+  mov rdi, r10
+  call print_number         ; print year
+
+  mov rdi, ' '
+  call putchar
+
+  mov rdi, r13
+  call print_number         ; print hour
+  mov rdi, ':'
+  call putchar
+  mov rdi, r14
+  call print_number         ; print minute
+  mov rdi, ':'
+  call putchar
+  mov rdi, r15
+  call print_number         ; print second
 
 
 ; Disable canonical mode (no buffering)
@@ -139,7 +168,7 @@ wait_for_esc:
   syscall
 
   cmp byte [buf], 0x1B      ; Check for ESC key
-  jne wait_for_esc 
+  jne wait_for_esc
 
   ; Restore original terminal settings
   mov rax, 16               ; sys_ioctl
@@ -179,7 +208,7 @@ breakdown_timestamp:
 
     ; (currYear % 4 == 0
     mov rax, r10            ; year to check
-    mov r12, 4              ;move 4 
+    mov r12, 4              ;move 4
     xor rdx, rdx            ;reset rdx
     div r12                 ;divide year by 4 to see if its leap
     cmp rdx, 0              ;check if remainder is 0
@@ -217,7 +246,7 @@ breakdown_timestamp:
   mov r8, r9                ; extraDays = daysTillNow
   add r8, 1                 ; + 1
 
-  ; Initialize month to 0 
+  ; Initialize month to 0
   xor r11, r11
 
   .month_loop:
@@ -242,7 +271,7 @@ breakdown_timestamp:
 
       add r11, 1            ; month += 1
       sub r8, 29            ; extraDays -= 29
-      jmp .month_loop 
+      jmp .month_loop
 
 .calculate_date:
   cmp r8, 0                 ; Check if extraDays > 0
@@ -290,12 +319,12 @@ print_number:
   ; Save registers
   push rbp
   mov rbp, rsp
-  push rax
   push rbx
   push rcx
   push rdx
   push rsi
   push r11
+  push rax
 
   ; Convert number to string
   lea rsi, [buf + 19]       ; RSI points to the end of the buffer
@@ -322,12 +351,12 @@ print_number:
   syscall
 
   ; Restore registers and return
+  pop rax
   pop r11
   pop rsi
   pop rdx
   pop rcx
   pop rbx
-  pop rax
   mov rsp, rbp
   pop rbp
   ret
